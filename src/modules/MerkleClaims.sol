@@ -19,7 +19,7 @@ abstract contract MerkleClaims {
         emit MerkleRootSet(root);
     }
 
-    function claim(bytes32[] calldata proof, uint256 amount) external virtual {
+    function claim(bytes32[] calldata proof, uint256 amount) public virtual {
         require(!_claimsPaused, "MerkleClaims: paused");
 
         bytes32 leaf     = keccak256(abi.encodePacked(msg.sender, amount));

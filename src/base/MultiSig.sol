@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "./Timelock.sol";
 
 abstract contract MultiSig is Timelock {
-    
+
     struct Transaction {
         address to;
         uint256 value;
@@ -19,22 +19,19 @@ abstract contract MultiSig is Timelock {
     mapping(address => bool) public isOwner;
     uint256 public threshold;
 
-    mapping(uint256 => Transaction)               public transactions;
-    mapping(uint256 => mapping(address => bool))  public confirmed;
+    mapping(uint256 => Transaction)              public transactions;
+    mapping(uint256 => mapping(address => bool)) public confirmed;
     uint256 public txCount;
 
-    // Events
     event Submission(uint256 indexed txId);
     event Confirmation(uint256 indexed txId, address indexed owner);
     event Execution(uint256 indexed txId);
 
-    // Modifiers
     modifier onlyOwner() {
         require(isOwner[msg.sender], "MultiSig: not owner");
         _;
     }
 
-    // Constructor
     constructor(address[] memory _owners, uint256 _threshold) {
         require(_owners.length > 0, "MultiSig: no owners");
         require(
@@ -56,7 +53,8 @@ abstract contract MultiSig is Timelock {
         address to,
         uint256 value,
         bytes calldata data
-    ) external onlyOwner returns (uint256 txId) {
+    ) public virtual returns (uint256 txId) {
+        require(isOwner[msg.sender], "MultiSig: not owner");
         txId = txCount++;
         transactions[txId] = Transaction({
             to:             to,
@@ -76,9 +74,10 @@ abstract contract MultiSig is Timelock {
         emit Submission(txId);
     }
 
-    function confirmTransaction(uint256 txId) external onlyOwner {
+    function confirmTransaction(uint256 txId) public virtual {
+        require(isOwner[msg.sender], "MultiSig: not owner");
         Transaction storage txn = transactions[txId];
-        require(!txn.executed,               "MultiSig: already executed");
+        require(!txn.executed,                "MultiSig: already executed");
         require(!confirmed[txId][msg.sender], "MultiSig: already confirmed");
 
         confirmed[txId][msg.sender] = true;
@@ -91,10 +90,10 @@ abstract contract MultiSig is Timelock {
         emit Confirmation(txId, msg.sender);
     }
 
-    function executeTransaction(uint256 txId) external {
+    function executeTransaction(uint256 txId) public virtual {
         Transaction storage txn = transactions[txId];
-        require(txn.confirmations >= threshold,  "MultiSig: below threshold");
-        require(!txn.executed,                   "MultiSig: already executed");
+        require(txn.confirmations >= threshold,    "MultiSig: below threshold");
+        require(!txn.executed,                     "MultiSig: already executed");
         require(_timelockReady(txn.executionTime), "MultiSig: timelock not elapsed");
 
         txn.executed = true;

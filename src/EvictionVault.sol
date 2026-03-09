@@ -51,29 +51,30 @@ contract EvictionVault is
         emit Withdrawal(msg.sender, amount);
     }
 
-    // MultiSig overrides (IEvictionVault signatures)
     function submitTransaction(address to, uint256 value, bytes calldata data)
-        external
-        override(MultiSig, IEvictionVault)
+        public
+        override(MultiSig)
         returns (uint256)
     {
         require(!paused, "EvictionVault: paused");
-        return MultiSig.submitTransaction(to, value, data);
+        require(isOwner[msg.sender], "MultiSig: not owner");
+        return super.submitTransaction(to, value, data);
     }
 
     function confirmTransaction(uint256 txId)
-        external
-        override(MultiSig, IEvictionVault)
+        public
+        override(MultiSig)
     {
         require(!paused, "EvictionVault: paused");
-        MultiSig.confirmTransaction(txId);
+        require(isOwner[msg.sender], "MultiSig: not owner");
+        super.confirmTransaction(txId);
     }
 
     function executeTransaction(uint256 txId)
-        external
-        override(MultiSig, IEvictionVault)
+        public
+        override(MultiSig)
     {
-        MultiSig.executeTransaction(txId);
+        super.executeTransaction(txId);
     }
 
     // Merkle Claims
@@ -86,11 +87,11 @@ contract EvictionVault is
     }
 
     function claim(bytes32[] calldata proof, uint256 amount)
-        external
+        public
         override(MerkleClaims, IEvictionVault)
         whenNotPaused
     {
-        MerkleClaims.claim(proof, amount);
+        super.claim(proof, amount);
     }
 
     // Emergency Controls

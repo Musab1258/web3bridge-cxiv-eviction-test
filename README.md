@@ -1,66 +1,33 @@
-## Foundry
+# Eviction Vault — Hardening Challenge
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Overview
 
-Foundry consists of:
+This repository refactors the monolithic `EvictionVault` smart contract into a
+secure, modular Foundry project and mitigates all six critical vulnerabilities
+identified in the challenge brief.
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+---
 
-## Documentation
+## Critical Vulnerability Fixes Test
 
-https://book.getfoundry.sh/
+1. `setMerkleRoot` — Callable by Anyone → `onlyOwner`
 
-## Usage
+2. `emergencyWithdrawAll` — Public Drain → **Removed**
 
-### Build
 
-```shell
-$ forge build
-```
+3. `pause` / `unpause` — Single Owner → `onlyOwner` (multisig-submittable)
 
-### Test
+4. `receive()` — `tx.origin` → `msg.sender`
 
-```shell
-$ forge test
-```
+## Running the Tests
 
-### Format
+```bash
+# Install dependencies
+forge install OpenZeppelin/openzeppelin-contracts
 
-```shell
-$ forge fmt
-```
+# Build
+forge build
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+# Test 
+forge test -vvv
 ```
